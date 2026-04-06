@@ -1,0 +1,4 @@
+<view class="container">
+  <text class="title">创作页</text>
+  <text class="subtitle">选择素材，生成小红书文案</text>
+</view>

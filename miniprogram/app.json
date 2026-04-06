@@ -1,0 +1,37 @@
+{
+  "pages": [
+    "pages/home/home",
+    "pages/upload/upload",
+    "pages/gallery/gallery",
+    "pages/detail/detail",
+    "pages/compose/compose",
+    "pages/result/result"
+  ],
+  "window": {
+    "navigationBarBackgroundColor": "#1a1a2e",
+    "navigationBarTitleText": "皮蛋助手",
+    "navigationBarTextStyle": "white",
+    "backgroundColor": "#0f0f1a",
+    "backgroundTextStyle": "light"
+  },
+  "tabBar": {
+    "color": "#8a8a8a",
+    "selectedColor": "#e8b86d",
+    "backgroundColor": "#1a1a2e",
+    "list": [
+      {
+        "pagePath": "pages/home/home",
+        "text": "首页"
+      },
+      {
+        "pagePath": "pages/gallery/gallery",
+        "text": "素材库"
+      },
+      {
+        "pagePath": "pages/compose/compose",
+        "text": "创作"
+      }
+    ]
+  },
+  "sitemapLocation": "sitemap.json"
+}

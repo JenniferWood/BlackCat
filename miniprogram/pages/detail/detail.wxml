@@ -1,0 +1,4 @@
+<view class="container">
+  <text class="title">素材详情</text>
+  <text class="subtitle">查看素材信息与标签</text>
+</view>

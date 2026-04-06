@@ -1,0 +1,4 @@
+<view class="container">
+  <text class="title">素材库</text>
+  <text class="subtitle">浏览全部素材</text>
+</view>

@@ -1,0 +1,4 @@
+<view class="container">
+  <text class="title">批量上传</text>
+  <text class="subtitle">选择并上传多张素材</text>
+</view>
