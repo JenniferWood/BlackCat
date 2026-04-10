@@ -95,13 +95,23 @@ export default function DetailPage() {
         &larr; 返回
       </button>
 
-      {/* Image */}
-      <img
-        className="detail-image"
-        src={item.blobUrl}
-        alt=""
-        onClick={() => setLightbox(true)}
-      />
+      {/* Media */}
+      {item.type === 'video' ? (
+        <video
+          className="detail-image"
+          src={item.blobUrl}
+          controls
+          playsInline
+          preload="metadata"
+        />
+      ) : (
+        <img
+          className="detail-image"
+          src={item.blobUrl}
+          alt=""
+          onClick={() => setLightbox(true)}
+        />
+      )}
 
       {/* Action buttons */}
       <div className="detail-actions">
@@ -144,8 +154,14 @@ export default function DetailPage() {
 
           <div className="analysis-section">
             <h3>评分</h3>
+            {analysis.duration != null && (
+              <div className="score-bar">
+                <label>视频时长</label>
+                <span>{Math.floor(analysis.duration / 60)}:{String(Math.round(analysis.duration % 60)).padStart(2, '0')}</span>
+              </div>
+            )}
             <div className="score-bar">
-              <label>图片质量</label>
+              <label>素材质量</label>
               <div className="score-bar-track">
                 <div
                   className="score-bar-fill"
@@ -177,8 +193,8 @@ export default function DetailPage() {
         </div>
       )}
 
-      {/* Lightbox */}
-      {lightbox && (
+      {/* Lightbox (photos only) */}
+      {lightbox && item.type !== 'video' && (
         <div className="lightbox" onClick={() => setLightbox(false)}>
           <img src={item.blobUrl} alt="" />
         </div>

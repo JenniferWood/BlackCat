@@ -41,6 +41,19 @@
     </view>
   </view>
 
+  <!-- Editing Prompt Section (video) -->
+  <view class="section" wx:if="{{editingPrompt}}">
+    <view class="section-header">
+      <text class="section-label">剪辑指导</text>
+      <view class="copy-btn" bindtap="copyEditingPrompt">
+        <text class="copy-btn-text">复制</text>
+      </view>
+    </view>
+    <view class="content-card">
+      <text class="content-text" selectable="{{true}}">{{editingPrompt}}</text>
+    </view>
+  </view>
+
   <!-- Bottom Actions -->
   <view class="actions">
     <button class="action-btn primary" bindtap="copyAll">复制全部</button>

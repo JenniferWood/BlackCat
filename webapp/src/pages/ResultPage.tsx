@@ -43,7 +43,10 @@ export default function ResultPage() {
 
   const copyAll = () => {
     const tagsStr = data.tags.map((t) => `#${t}`).join(' ');
-    const full = `${data.title}\n\n${data.content}\n\n${tagsStr}`;
+    let full = `${data.title}\n\n${data.content}\n\n${tagsStr}`;
+    if (data.editingPrompt) {
+      full += `\n\n--- 剪辑指导 ---\n${data.editingPrompt}`;
+    }
     copyText(full, '全部内容');
   };
 
@@ -100,7 +103,7 @@ export default function ResultPage() {
             onClick={downloadAll}
             disabled={downloading}
           >
-            {downloading ? '下载中...' : `下载全部图片（${data.media.length} 张）`}
+            {downloading ? '下载中...' : `下载全部素材（${data.media.length} 个）`}
           </button>
           <p className="download-hint">
             文件名格式：pidan-{getDatePrefix()}-序号，搜索 "pidan" 即可找到
@@ -140,6 +143,16 @@ export default function ResultPage() {
           复制
         </button>
       </div>
+
+      {data.editingPrompt && (
+        <div className="result-card">
+          <h3>剪辑指导</h3>
+          <div className="content" style={{ whiteSpace: 'pre-wrap' }}>{data.editingPrompt}</div>
+          <button className="copy-btn" onClick={() => copyText(data.editingPrompt!, '剪辑指导')}>
+            复制
+          </button>
+        </div>
+      )}
 
       <button className="btn-primary" onClick={copyAll}>
         复制全部文案

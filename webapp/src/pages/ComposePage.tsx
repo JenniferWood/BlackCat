@@ -78,6 +78,7 @@ export default function ComposePage() {
                 onClick={() => toggleSelect(item.id)}
               >
                 <img src={item.thumbnailUrl} alt="" />
+                {item.type === 'video' && <span className="video-badge">▶</span>}
                 {isSelected && <span className="check">✓</span>}
               </div>
             );
@@ -104,7 +105,7 @@ export default function ComposePage() {
         disabled={selectedIds.length === 0}
         onClick={handleGenerate}
       >
-        生成文案（已选 {selectedIds.length} 张）
+        生成文案（已选 {selectedIds.length} 个素材）
       </button>
     </div>
   );

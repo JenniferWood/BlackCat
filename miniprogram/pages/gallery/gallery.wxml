@@ -86,6 +86,11 @@
           lazy-load="true"
         />
 
+        <!-- Video badge -->
+        <view class="media-video-badge" wx:if="{{item.type === 'video'}}">
+          <text class="media-video-icon">▶</text>
+        </view>
+
         <!-- Favorite heart overlay -->
         <view class="media-fav" wx:if="{{item.isFavorite}}">
           <text class="media-fav-icon">★</text>

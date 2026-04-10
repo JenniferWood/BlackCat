@@ -132,6 +132,20 @@ page {
   font-weight: 700;
 }
 
+.video-badge {
+  position: absolute;
+  bottom: 8rpx;
+  left: 8rpx;
+  background: rgba(0, 0, 0, 0.7);
+  border-radius: 20rpx;
+  padding: 4rpx 12rpx;
+}
+
+.video-icon {
+  font-size: 20rpx;
+  color: #fff;
+}
+
 /* ── Empty Hint ── */
 
 .empty-hint {

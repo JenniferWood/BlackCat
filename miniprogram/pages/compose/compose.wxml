@@ -11,7 +11,7 @@
   <view class="section">
     <view class="section-header">
       <text class="section-title">选择素材</text>
-      <text class="section-count">已选 {{selectedIds.length}}/{{maxSelect}} 张</text>
+      <text class="section-count">已选 {{selectedIds.length}}/{{maxSelect}} 个</text>
     </view>
 
     <scroll-view
@@ -34,6 +34,9 @@
         />
         <view class="check-badge" wx:if="{{selectedIds.indexOf(item.id) > -1}}">
           <text class="check-icon">✓</text>
+        </view>
+        <view class="video-badge" wx:if="{{item.type === 'video'}}">
+          <text class="video-icon">▶</text>
         </view>
       </view>
     </scroll-view>

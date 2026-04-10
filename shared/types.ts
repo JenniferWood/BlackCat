@@ -6,6 +6,7 @@ export interface MediaAnalysis {
   mood: string;               // 情绪关键词：慵懒/调皮/优雅/呆萌...
   quality: number;            // 图片质量评分 1-10
   publishScore: number;       // 适合发布评分 1-10
+  duration?: number;          // 视频时长（秒），仅视频有值
 }
 
 export interface MediaItem {
@@ -86,6 +87,7 @@ export interface GenerateResponse {
   title: string;
   content: string;
   tags: string[];
+  editingPrompt?: string;     // 视频剪辑指导（含视频素材时返回）
 }
 
 export interface RecommendResponse {

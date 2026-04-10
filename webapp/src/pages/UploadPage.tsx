@@ -160,14 +160,14 @@ export default function UploadPage() {
           onDrop={handleDrop}
           onDragOver={handleDragOver}
         >
-          <p>点击或拖拽图片到这里</p>
+          <p>点击或拖拽图片/视频到这里</p>
           <p style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
-            最多 {MAX_FILES} 张，已选 {files.length} 张
+            最多 {MAX_FILES} 个，已选 {files.length} 个
           </p>
           <input
             ref={inputRef}
             type="file"
-            accept="image/*"
+            accept="image/*,video/mp4,video/quicktime"
             multiple
             style={{ display: 'none' }}
             onChange={(e) => {
@@ -182,7 +182,11 @@ export default function UploadPage() {
             <div className="preview-grid">
               {files.map((entry, i) => (
                 <div key={i} className="preview-item">
-                  <img src={entry.previewUrl} alt="" />
+                  {entry.file.type.startsWith('video/') ? (
+                    <video src={entry.previewUrl} muted playsInline style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  ) : (
+                    <img src={entry.previewUrl} alt="" />
+                  )}
                   <button
                     className="remove-btn"
                     onClick={(e) => {
@@ -244,8 +248,8 @@ export default function UploadPage() {
       {phase === 'done' && (
         <div style={{ marginTop: 24, textAlign: 'center' }}>
           <p style={{ marginBottom: 16 }}>
-            成功 {successCount} 张
-            {errorCount > 0 && `，失败 ${errorCount} 张`}
+            成功 {successCount} 个
+            {errorCount > 0 && `，失败 ${errorCount} 个`}
           </p>
           <button
             className="btn-primary"

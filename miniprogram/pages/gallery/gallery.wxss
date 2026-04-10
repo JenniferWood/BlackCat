@@ -275,6 +275,21 @@
   color: #e8b86d;
 }
 
+/* Video badge */
+.media-video-badge {
+  position: absolute;
+  top: 12rpx;
+  left: 12rpx;
+  background-color: rgba(0, 0, 0, 0.7);
+  border-radius: 20rpx;
+  padding: 4rpx 14rpx;
+}
+
+.media-video-icon {
+  font-size: 20rpx;
+  color: #fff;
+}
+
 /* ===== Load More ===== */
 .load-more {
   display: flex;

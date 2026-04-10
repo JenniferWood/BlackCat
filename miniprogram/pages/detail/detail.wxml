@@ -11,16 +11,25 @@
   </view>
 
   <block wx:elif="{{item}}">
-    <!-- Hero image -->
+    <!-- Hero media -->
     <view class="hero" bind:tap="previewImage">
-      <image
-        class="hero-image"
+      <video
+        wx:if="{{item.type === 'video'}}"
+        class="hero-video"
         src="{{item.blobUrl}}"
-        mode="widthFix"
+        controls
+        style="width: 100%"
       />
-      <view class="hero-hint">
-        <text class="hero-hint-text">点击查看大图</text>
-      </view>
+      <block wx:else>
+        <image
+          class="hero-image"
+          src="{{item.blobUrl}}"
+          mode="widthFix"
+        />
+        <view class="hero-hint">
+          <text class="hero-hint-text">点击查看大图</text>
+        </view>
+      </block>
     </view>
 
     <!-- Action bar -->
@@ -67,9 +76,15 @@
         <text class="analysis-mood">{{item.analysis.mood}}</text>
       </view>
 
+      <!-- Duration (video only) -->
+      <view class="analysis-block" wx:if="{{item.analysis.duration}}">
+        <text class="analysis-label">视频时长</text>
+        <text class="analysis-desc">{{item.analysis.duration}}秒</text>
+      </view>
+
       <!-- Quality score -->
       <view class="analysis-block">
-        <text class="analysis-label">质量评分</text>
+        <text class="analysis-label">素材质量</text>
         <view class="score-row">
           <view class="score-bar-bg">
             <view class="score-bar-fill score-bar-fill--quality" style="width: {{item.analysis.quality * 10}}%"></view>

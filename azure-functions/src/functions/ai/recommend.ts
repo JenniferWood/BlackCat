@@ -27,10 +27,12 @@ async function handler(request: HttpRequest, context: InvocationContext): Promis
     // Build summary for prompt
     const itemsSummary = items.map((item) => ({
       id: item.id,
+      type: item.type,
       description: item.analysis?.description,
       tags: item.analysis?.tags,
       mood: item.analysis?.mood,
       publishScore: item.analysis?.publishScore,
+      duration: item.analysis?.duration,
     }));
 
     const client = getAIClient();
@@ -40,14 +42,15 @@ async function handler(request: HttpRequest, context: InvocationContext): Promis
         {
           role: 'user',
           content: `你是小红书黑猫博主的内容策划助手。猫的名字叫皮蛋。
-以下是素材库中未发布的高分照片分析结果：
+以下是素材库中未发布的高分素材（照片和视频）分析结果：
 ${JSON.stringify(itemsSummary, null, 2)}
 
-请推荐 ${limit} 组适合发布的内容组合，每组 1-9 张图。要求：
-- 同一组内图片要主题一致，能讲一个故事
-- 同一组内避免选择构图、姿态、场景高度相似的图片，优先选互补/对比/有叙事节奏感的组合
+请推荐 ${limit} 组适合发布的内容组合，每组 1-9 个素材。要求：
+- 同一组内素材要主题一致，能讲一个故事
+- 同一组内避免选择构图、姿态、场景高度相似的素材，优先选互补/对比/有叙事节奏感的组合
 - 不同组之间的主题要有差异
 - 结合小红书当下热门话题趋势
+- 如果组合中包含视频素材，推荐理由中应说明视频的使用方式（如作为封面视频、穿插剪辑等）
 
 返回 JSON：
 {
