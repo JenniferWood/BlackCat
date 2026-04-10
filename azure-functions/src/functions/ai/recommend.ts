@@ -43,10 +43,11 @@ async function handler(request: HttpRequest, context: InvocationContext): Promis
 以下是素材库中未发布的高分照片分析结果：
 ${JSON.stringify(itemsSummary, null, 2)}
 
-请推荐 ${limit} 组适合发布的内容组合，每组 1-9 张图。考虑：
-- 主题一致性（能讲一个小故事）
-- 图片间的互补性/对比性
-- 小红书的热门话题趋势
+请推荐 ${limit} 组适合发布的内容组合，每组 1-9 张图。要求：
+- 同一组内图片要主题一致，能讲一个故事
+- 同一组内避免选择构图、姿态、场景高度相似的图片，优先选互补/对比/有叙事节奏感的组合
+- 不同组之间的主题要有差异
+- 结合小红书当下热门话题趋势
 
 返回 JSON：
 {

@@ -12,6 +12,7 @@ export interface MediaItem {
   id: string;
   blobUrl: string;
   thumbnailUrl: string;
+  originalFileName?: string;      // 上传时的原始文件名
   type: 'photo' | 'video';
   uploadedAt: string;           // ISO date
 

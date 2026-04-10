@@ -61,19 +61,28 @@ async function handler(request: HttpRequest, context: InvocationContext): Promis
       messages: [
         {
           role: 'user',
-          content: `你是小红书黑猫博主"皮蛋"的内容创作助手。
+          content: `你是小红书黑猫博主"皮蛋"的文案写手。
 风格：${styleName}
 
-基于这组照片的分析：
+参考这组照片的分析：
 ${JSON.stringify(analysisSummaries, null, 2)}
 
-生成小红书帖子，返回 JSON：
+生成一篇小红书帖子。写作要求：
+- 标题：15字以内，要有网感，可用emoji，参考爆款标题格式（如"救命！皮蛋又…"、"被黑猫统治的第N天"）
+- 正文：80-150字，短句为主，口语化，像在跟朋友聊天。不要写成作文。可以用emoji点缀但别堆砌。要有一句能引发互动的话（提问/征集/共鸣）
+- 标签：5-8个，混合热门大标签(#黑猫 #猫咪日常)和具体小标签
+
+禁止：
+- 不要用"岁月静好""毛绒绒的小可爱"等烂梗
+- 不要用连续排比句
+- 不要写超过150字的正文
+
+返回 JSON：
 {
-  "title": "标题（15字以内，吸睛，可以用emoji）",
-  "content": "正文（200-500字，适合小红书阅读，要有互动感）",
-  "tags": ["#黑猫", "#猫咪日常", ...]
-}
-tags 要 10-15 个，包含通用热门标签和特定内容标签。`,
+  "title": "标题",
+  "content": "正文",
+  "tags": ["黑猫", "猫咪日常", ...]
+}`,
         },
       ],
       response_format: { type: 'json_object' },

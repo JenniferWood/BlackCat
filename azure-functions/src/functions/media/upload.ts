@@ -53,10 +53,12 @@ async function handler(request: HttpRequest, context: InvocationContext): Promis
     const thumbnailUrl = await uploadBlob(thumbnailContainer, blobName, fileBuffer, contentType);
 
     // Create MediaItem in Cosmos DB
+    const originalFileName = (file as File).name || undefined;
     const mediaItem: MediaItem = {
       id,
       blobUrl,
       thumbnailUrl,
+      originalFileName,
       type: getMediaType(contentType),
       uploadedAt: new Date().toISOString(),
       status: 'new',
