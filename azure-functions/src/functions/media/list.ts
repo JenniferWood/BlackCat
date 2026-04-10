@@ -71,11 +71,12 @@ async function handler(request: HttpRequest, context: InvocationContext): Promis
     const mediaContainer = getMediaContainer();
     const thumbContainer = getThumbnailContainer();
     const itemsWithSas = items.map(item => {
-      const blobName = item.blobUrl.split('/').pop()!;
+      const mediaBlobName = item.blobUrl.split('/').pop()!;
+      const thumbBlobName = item.thumbnailUrl.split('/').pop()!;
       return {
         ...item,
-        blobUrl: getBlobSasUrl(mediaContainer, blobName),
-        thumbnailUrl: getBlobSasUrl(thumbContainer, blobName),
+        blobUrl: getBlobSasUrl(mediaContainer, mediaBlobName),
+        thumbnailUrl: getBlobSasUrl(thumbContainer, thumbBlobName),
       };
     });
 

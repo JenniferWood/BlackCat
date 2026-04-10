@@ -11,6 +11,7 @@ export async function request<T>(url: string, options?: { method?: string; data?
   if (!res.ok) {
     throw new Error(`Request failed: ${res.status}`);
   }
+  if (res.status === 204) return undefined as T;
   return res.json();
 }
 

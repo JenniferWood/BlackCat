@@ -24,15 +24,8 @@ Page({
   },
 
   chooseMedia() {
-    const currentCount = this.data.selectedFiles.length;
-    const remaining = 9 - currentCount;
-    if (remaining <= 0) {
-      wx.showToast({ title: '最多选择 9 张', icon: 'none' });
-      return;
-    }
-
     wx.chooseMedia({
-      count: remaining,
+      count: 9,
       mediaType: ['image'],
       sourceType: ['album', 'camera'],
       success: (res) => {

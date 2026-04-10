@@ -48,6 +48,59 @@ button {
   margin-bottom: 20px;
 }
 
+.page-title-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.page-title-row .page-title {
+  margin-bottom: 0;
+}
+
+.refresh-btn {
+  background: none;
+  color: var(--text-secondary);
+  font-size: 20px;
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  transition: color 0.2s;
+}
+
+.refresh-btn:hover {
+  color: var(--accent);
+}
+
+.upload-btn {
+  background: var(--accent);
+  color: var(--bg-primary);
+  font-size: 20px;
+  width: 28px;
+  height: 28px;
+  line-height: 26px;
+  text-align: center;
+  border-radius: 50%;
+  margin-left: auto;
+}
+
+.upload-btn:hover {
+  background: var(--accent-light);
+}
+
+.back-btn {
+  background: none;
+  color: var(--text-secondary);
+  font-size: 22px;
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  transition: color 0.2s;
+}
+
+.back-btn:hover {
+  color: var(--text-primary);
+}
+
 .btn-primary {
   background: var(--accent);
   color: #000;
@@ -836,4 +889,90 @@ button {
   padding: 2px 8px;
   border-radius: var(--radius-pill);
   pointer-events: none;
+}
+
+.delete-badge {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 24px;
+  height: 24px;
+  background: rgba(231, 76, 60, 0.85);
+  color: #fff;
+  font-size: 16px;
+  line-height: 24px;
+  text-align: center;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+}
+
+.media-card:hover .delete-badge {
+  opacity: 1;
+}
+
+/* Select mode */
+.media-card.selected {
+  outline: 3px solid var(--accent);
+  outline-offset: -3px;
+}
+
+.select-check {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.7);
+  background: rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  color: transparent;
+  pointer-events: none;
+}
+
+.select-check.checked {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #000;
+  font-weight: 700;
+}
+
+/* Batch action bar */
+.batch-bar {
+  position: fixed;
+  bottom: 60px;
+  left: 0;
+  right: 0;
+  height: 56px;
+  background: var(--bg-secondary);
+  border-top: 1px solid var(--bg-tertiary);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  z-index: 90;
+}
+
+.batch-bar span {
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.btn-batch-delete {
+  background: var(--error);
+  color: #fff;
+  padding: 8px 20px;
+  border-radius: var(--radius-pill);
+  font-size: 14px;
+  font-weight: 600;
+  transition: opacity 0.2s;
+}
+
+.btn-batch-delete:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }

@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { MediaGrid } from '../components/MediaGrid';
+import { useDataCache } from '../contexts/DataCache';
 import { request } from '../api/client';
 import type { MediaListResponse, MediaItem } from '@shared/types';
 
@@ -16,6 +18,10 @@ const STATUS_CHIPS: { label: string; value: StatusFilter }[] = [
 const PAGE_SIZE = 20;
 
 export default function GalleryPage() {
+  const cache = useDataCache();
+  const navigate = useNavigate();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const [items, setItems] = useState<MediaItem[]>([]);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
@@ -26,6 +32,10 @@ export default function GalleryPage() {
   const [favOnly, setFavOnly] = useState(false);
   const [searchText, setSearchText] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
+
+  const [deleteMode, setDeleteMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [deleting, setDeleting] = useState(false);
 
   const sentinelRef = useRef<HTMLDivElement>(null);
   const observerRef = useRef<IntersectionObserver | null>(null);
@@ -38,11 +48,20 @@ export default function GalleryPage() {
 
   // Reset when filters change
   useEffect(() => {
+    const cacheKey = `gallery-${status}-${favOnly}-${debouncedSearch}`;
+    const cached = cache.get<{ items: MediaItem[]; total: number; page: number }>(cacheKey);
+    if (cached && cache.isFresh(cacheKey)) {
+      setItems(cached.items);
+      setTotal(cached.total);
+      setPage(cached.page);
+      setLoading(false);
+      return;
+    }
     setItems([]);
     setPage(1);
     setTotal(0);
     setLoading(true);
-  }, [status, favOnly, debouncedSearch]);
+  }, [status, favOnly, debouncedSearch, cache]);
 
   // Fetch data
   const fetchPage = useCallback(
@@ -63,6 +82,9 @@ export default function GalleryPage() {
   );
 
   useEffect(() => {
+    const cacheKey = `gallery-${status}-${favOnly}-${debouncedSearch}`;
+    if (cache.isFresh(cacheKey)) return;
+
     let cancelled = false;
 
     (async () => {
@@ -72,6 +94,7 @@ export default function GalleryPage() {
         setItems(data.items);
         setTotal(data.total);
         setPage(1);
+        cache.set(cacheKey, { items: data.items, total: data.total, page: 1 });
       } catch {
         // silently ignore — could add error state later
       } finally {
@@ -82,7 +105,7 @@ export default function GalleryPage() {
     return () => {
       cancelled = true;
     };
-  }, [fetchPage]);
+  }, [fetchPage, cache, status, favOnly, debouncedSearch]);
 
   // Load next page
   const loadMore = useCallback(async () => {
@@ -92,7 +115,12 @@ export default function GalleryPage() {
     setLoadingMore(true);
     try {
       const data = await fetchPage(nextPage);
-      setItems((prev) => [...prev, ...data.items]);
+      setItems((prev) => {
+        const merged = [...prev, ...data.items];
+        const cacheKey = `gallery-${status}-${favOnly}-${debouncedSearch}`;
+        cache.set(cacheKey, { items: merged, total: data.total, page: nextPage });
+        return merged;
+      });
       setPage(nextPage);
       setTotal(data.total);
     } catch {
@@ -100,7 +128,7 @@ export default function GalleryPage() {
     } finally {
       setLoadingMore(false);
     }
-  }, [page, loadingMore, fetchPage]);
+  }, [page, loadingMore, fetchPage, cache, status, favOnly, debouncedSearch]);
 
   const hasMore = items.length < total;
 
@@ -130,9 +158,72 @@ export default function GalleryPage() {
     };
   }, [hasMore, loading, loadMore]);
 
+  const refreshGallery = useCallback(() => {
+    const cacheKey = `gallery-${status}-${favOnly}-${debouncedSearch}`;
+    cache.invalidate(cacheKey);
+    setItems([]);
+    setPage(1);
+    setTotal(0);
+    setLoading(true);
+  }, [cache, status, favOnly, debouncedSearch]);
+
+  const toggleDeleteMode = () => {
+    setDeleteMode((v) => !v);
+    setSelectedIds(new Set());
+  };
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const handleBatchDelete = async () => {
+    if (selectedIds.size === 0) return;
+    if (!confirm(`确定删除选中的 ${selectedIds.size} 个素材？`)) return;
+
+    setDeleting(true);
+    const ids = [...selectedIds];
+    const failed: string[] = [];
+    for (const id of ids) {
+      try {
+        await request(`/api/media/${id}`, { method: 'DELETE' });
+      } catch {
+        failed.push(id);
+      }
+    }
+
+    setItems((prev) => prev.filter((i) => !selectedIds.has(i.id) || failed.includes(i.id)));
+    setTotal((prev) => prev - (ids.length - failed.length));
+
+    const cacheKey = `gallery-${status}-${favOnly}-${debouncedSearch}`;
+    cache.invalidate(cacheKey);
+
+    setDeleteMode(false);
+    setSelectedIds(new Set());
+    setDeleting(false);
+
+    if (failed.length > 0) {
+      alert(`${failed.length} 个素材删除失败`);
+    }
+  };
+
   return (
     <div className="page">
-      <h1 className="page-title">素材库</h1>
+      <div className="page-title-row">
+        <h1 className="page-title">素材库</h1>
+        <button className="refresh-btn" onClick={refreshGallery} title="刷新">↻</button>
+        <button
+          className={`chip manage-btn${deleteMode ? ' active' : ''}`}
+          style={{ marginLeft: 'auto' }}
+          onClick={toggleDeleteMode}
+        >
+          {deleteMode ? '取消' : '管理'}
+        </button>
+      </div>
 
       {/* Search */}
       <input
@@ -168,7 +259,12 @@ export default function GalleryPage() {
         </div>
       ) : (
         <>
-          <MediaGrid items={items} />
+          <MediaGrid
+            items={items}
+            selectMode={deleteMode}
+            selectedIds={selectedIds}
+            onToggleSelect={toggleSelect}
+          />
 
           {/* Sentinel for infinite scroll */}
           {hasMore && (
@@ -184,6 +280,38 @@ export default function GalleryPage() {
           )}
         </>
       )}
+
+      {/* Batch delete action bar */}
+      {deleteMode && (
+        <div className="batch-bar">
+          <span>已选 {selectedIds.size} 个</span>
+          <button
+            className="btn-batch-delete"
+            disabled={selectedIds.size === 0 || deleting}
+            onClick={handleBatchDelete}
+          >
+            {deleting ? '删除中...' : '删除'}
+          </button>
+        </div>
+      )}
+
+      {!deleteMode && (
+        <button className="fab" onClick={() => fileInputRef.current?.click()}>+</button>
+      )}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*,video/mp4,video/quicktime"
+        multiple
+        style={{ display: 'none' }}
+        onChange={(e) => {
+          const fileList = e.target.files;
+          if (fileList && fileList.length > 0) {
+            navigate('/upload', { state: { files: Array.from(fileList) } });
+          }
+          e.target.value = '';
+        }}
+      />
     </div>
   );
 }

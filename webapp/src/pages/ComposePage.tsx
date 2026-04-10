@@ -1,5 +1,6 @@
 import { request } from '../api/client';
 import { LoadingSpinner } from '../components/LoadingSpinner';
+import { useDataCache } from '../contexts/DataCache';
 import type { MediaItem, MediaListResponse, GenerateResponse, ContentStyle } from '@shared/types';
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -16,20 +17,29 @@ const MAX_SELECTION = 9;
 export default function ComposePage() {
   const navigate = useNavigate();
   const location = useLocation();
+  const cache = useDataCache();
   const preSelected = (location.state as { mediaIds?: string[] })?.mediaIds;
 
-  const [media, setMedia] = useState<MediaItem[]>([]);
+  const [media, setMedia] = useState<MediaItem[]>(
+    () => cache.get<MediaItem[]>('compose-media') ?? [],
+  );
   const [selectedIds, setSelectedIds] = useState<string[]>(preSelected ?? []);
   const [style, setStyle] = useState<ContentStyle>('auto');
   const [loading, setLoading] = useState(false);
-  const [fetching, setFetching] = useState(true);
+  const [fetching, setFetching] = useState(
+    () => !cache.isFresh('compose-media'),
+  );
 
   useEffect(() => {
+    if (cache.isFresh('compose-media')) return;
     request<MediaListResponse>('/api/media/list?status=analyzed&pageSize=100')
-      .then((res) => setMedia(res.items))
+      .then((res) => {
+        setMedia(res.items);
+        cache.set('compose-media', res.items);
+      })
       .catch(() => alert('加载媒体列表失败'))
       .finally(() => setFetching(false));
-  }, []);
+  }, [cache]);
 
   const toggleSelect = (id: string) => {
     setSelectedIds((prev) => {

@@ -1,7 +1,7 @@
-import { useState, useRef, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useRef, useCallback, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { uploadFile, request } from '../api/client';
-import type { AnalyzeResponse } from '@shared/types';
+import type { AnalyzeResponse, UploadResponse } from '@shared/types';
 
 type Phase = 'selecting' | 'uploading' | 'done';
 
@@ -14,29 +14,39 @@ interface UploadItem {
   file: File;
   previewUrl: string;
   progress: number;
-  status: 'pending' | 'uploading' | 'analyzing' | 'done' | 'error';
+  status: 'pending' | 'uploading' | 'analyzing' | 'done' | 'skipped' | 'error';
   error?: string;
 }
 
-const MAX_FILES = 9;
-
 export default function UploadPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const inputRef = useRef<HTMLInputElement>(null);
 
   const [phase, setPhase] = useState<Phase>('selecting');
   const [files, setFiles] = useState<FileEntry[]>([]);
   const [uploadItems, setUploadItems] = useState<UploadItem[]>([]);
 
+  // Accept pre-selected files from HomePage navigation state
+  useEffect(() => {
+    const state = location.state as { files?: File[] } | null;
+    if (state?.files && state.files.length > 0) {
+      const entries: FileEntry[] = state.files.map((file) => ({
+        file,
+        previewUrl: URL.createObjectURL(file),
+      }));
+      setFiles(entries);
+      // Clear navigation state to avoid re-adding on remount
+      window.history.replaceState({}, '');
+    }
+  }, []);
+
   const addFiles = useCallback((incoming: FileList | null) => {
     if (!incoming) return;
 
     setFiles((prev) => {
-      const remaining = MAX_FILES - prev.length;
-      if (remaining <= 0) return prev;
-
       const added: FileEntry[] = [];
-      for (let i = 0; i < Math.min(incoming.length, remaining); i++) {
+      for (let i = 0; i < incoming.length; i++) {
         const file = incoming[i];
         added.push({ file, previewUrl: URL.createObjectURL(file) });
       }
@@ -89,7 +99,7 @@ export default function UploadPage() {
 
       try {
         // Step 1: Upload file (0-70%)
-        const uploadResult = await uploadFile(items[i].file, (percent) => {
+        const uploadResult: UploadResponse = await uploadFile(items[i].file, (percent) => {
           const scaled = Math.round(percent * 0.7);
           setUploadItems((prev) =>
             prev.map((item, idx) =>
@@ -97,6 +107,19 @@ export default function UploadPage() {
             ),
           );
         });
+
+        if (uploadResult.duplicate) {
+          // Already uploaded — skip analyze
+          setUploadItems((prev) =>
+            prev.map((item, idx) =>
+              idx === i
+                ? { ...item, status: 'skipped', progress: 100 }
+                : item,
+            ),
+          );
+          successCount++;
+          continue;
+        }
 
         // Step 2: Analyze (70-100%)
         setUploadItems((prev) =>
@@ -152,7 +175,10 @@ export default function UploadPage() {
   if (phase === 'selecting') {
     return (
       <div className="page">
-        <h1 className="page-title">上传素材</h1>
+        <div className="page-title-row">
+          <button className="back-btn" onClick={() => navigate(-1)}>←</button>
+          <h1 className="page-title">上传素材</h1>
+        </div>
 
         <div
           className="upload-zone"
@@ -162,7 +188,7 @@ export default function UploadPage() {
         >
           <p>点击或拖拽图片/视频到这里</p>
           <p style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
-            最多 {MAX_FILES} 个，已选 {files.length} 个
+            已选 {files.length} 个
           </p>
           <input
             ref={inputRef}
@@ -183,7 +209,7 @@ export default function UploadPage() {
               {files.map((entry, i) => (
                 <div key={i} className="preview-item">
                   {entry.file.type.startsWith('video/') ? (
-                    <video src={entry.previewUrl} muted playsInline style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    <video src={entry.previewUrl} muted playsInline preload="metadata" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   ) : (
                     <img src={entry.previewUrl} alt="" />
                   )}
@@ -211,21 +237,35 @@ export default function UploadPage() {
 
   // --- Render: Uploading / Done ---
   const successCount = uploadItems.filter((i) => i.status === 'done').length;
+  const skippedCount = uploadItems.filter((i) => i.status === 'skipped').length;
   const errorCount = uploadItems.filter((i) => i.status === 'error').length;
 
   return (
     <div className="page">
-      <h1 className="page-title">
-        {phase === 'uploading' ? '上传中...' : '上传完成'}
-      </h1>
+      <div className="page-title-row">
+        <button className="back-btn" onClick={() => navigate('/')}>←</button>
+        <h1 className="page-title">
+          {phase === 'uploading' ? '上传中...' : '上传完成'}
+        </h1>
+      </div>
 
       {uploadItems.map((item, i) => (
         <div key={i} className="progress-item">
-          <img
-            src={item.previewUrl}
-            alt=""
-            style={{ width: 48, height: 48, objectFit: 'cover', borderRadius: 6 }}
-          />
+          {item.file.type.startsWith('video/') ? (
+            <video
+              src={item.previewUrl}
+              muted
+              playsInline
+              preload="metadata"
+              style={{ width: 48, height: 48, objectFit: 'cover', borderRadius: 6 }}
+            />
+          ) : (
+            <img
+              src={item.previewUrl}
+              alt=""
+              style={{ width: 48, height: 48, objectFit: 'cover', borderRadius: 6 }}
+            />
+          )}
           <div className="progress-info">
             <span style={{ fontSize: 13 }}>{item.file.name}</span>
             <div className="progress-track">
@@ -239,6 +279,7 @@ export default function UploadPage() {
               {item.status === 'uploading' && `上传中 ${item.progress}%`}
               {item.status === 'analyzing' && '分析中...'}
               {item.status === 'done' && '完成'}
+              {item.status === 'skipped' && '已存在，跳过'}
               {item.status === 'error' && `失败: ${item.error}`}
             </span>
           </div>
@@ -249,6 +290,7 @@ export default function UploadPage() {
         <div style={{ marginTop: 24, textAlign: 'center' }}>
           <p style={{ marginBottom: 16 }}>
             成功 {successCount} 个
+            {skippedCount > 0 && `，跳过 ${skippedCount} 个重复`}
             {errorCount > 0 && `，失败 ${errorCount} 个`}
           </p>
           <button

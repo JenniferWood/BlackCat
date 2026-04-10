@@ -1,4 +1,10 @@
-import { FFmpeg } from '@ffmpeg/ffmpeg';
+import { execFile } from 'child_process';
+import { promisify } from 'util';
+import { writeFile, readFile, unlink, mkdtemp } from 'fs/promises';
+import { tmpdir } from 'os';
+import { join } from 'path';
+
+const execFileAsync = promisify(execFile);
 
 export const MAX_VIDEO_SIZE_MB = 100;
 
@@ -16,72 +22,54 @@ function getTimestamps(duration: number, count: number): number[] {
   return Array.from({ length: count }, (_, i) => Math.round((i + 1) * step * 100) / 100);
 }
 
-let ffmpegInstance: FFmpeg | null = null;
-
-async function getFFmpeg(): Promise<FFmpeg> {
-  if (ffmpegInstance) return ffmpegInstance;
-  const ffmpeg = new FFmpeg();
-  await ffmpeg.load();
-  ffmpegInstance = ffmpeg;
-  return ffmpeg;
+async function getDuration(inputPath: string): Promise<number> {
+  const { stdout } = await execFileAsync('ffprobe', [
+    '-v', 'error',
+    '-show_entries', 'format=duration',
+    '-of', 'csv=p=0',
+    inputPath,
+  ]);
+  const duration = parseFloat(stdout.trim());
+  return isNaN(duration) ? 10 : duration;
 }
 
 export async function extractFrames(
   videoBuffer: Buffer,
   ext: string,
 ): Promise<{ duration: number; frames: Buffer[] }> {
-  const ffmpeg = await getFFmpeg();
-  const inputName = `input.${ext}`;
+  const tempDir = await mkdtemp(join(tmpdir(), 'pidan-'));
+  const inputPath = join(tempDir, `input.${ext}`);
 
-  await ffmpeg.writeFile(inputName, new Uint8Array(videoBuffer));
+  try {
+    await writeFile(inputPath, videoBuffer);
 
-  // Get duration via a short probe run — extract to a single frame and read logs
-  let duration = 0;
-  ffmpeg.on('log', ({ message }) => {
-    const match = message.match(/Duration:\s*(\d+):(\d+):(\d+)\.(\d+)/);
-    if (match) {
-      duration =
-        parseInt(match[1]) * 3600 +
-        parseInt(match[2]) * 60 +
-        parseInt(match[3]) +
-        parseInt(match[4]) / 100;
+    const duration = await getDuration(inputPath);
+    const count = getFrameCount(duration);
+    const timestamps = getTimestamps(duration, count);
+    const frames: Buffer[] = [];
+
+    for (let i = 0; i < timestamps.length; i++) {
+      const outPath = join(tempDir, `frame_${i}.jpg`);
+      try {
+        await execFileAsync('ffmpeg', [
+          '-ss', String(timestamps[i]),
+          '-i', inputPath,
+          '-frames:v', '1',
+          '-vf', 'scale=512:-1',
+          '-q:v', '2',
+          '-y',
+          outPath,
+        ]);
+        const data = await readFile(outPath);
+        frames.push(data);
+        await unlink(outPath).catch(() => {});
+      } catch {
+        // Frame extraction at this timestamp failed, skip
+      }
     }
-  });
 
-  // Probe: extract 1 frame just to trigger duration log
-  await ffmpeg.exec(['-i', inputName, '-frames:v', '1', '-f', 'null', '-']);
-
-  if (duration <= 0) {
-    // Fallback: try to get duration from format info
-    duration = 10; // conservative default
+    return { duration, frames };
+  } finally {
+    await unlink(inputPath).catch(() => {});
   }
-
-  const count = getFrameCount(duration);
-  const timestamps = getTimestamps(duration, count);
-  const frames: Buffer[] = [];
-
-  for (let i = 0; i < timestamps.length; i++) {
-    const outName = `frame_${i}.jpg`;
-    await ffmpeg.exec([
-      '-ss', String(timestamps[i]),
-      '-i', inputName,
-      '-frames:v', '1',
-      '-vf', 'scale=512:-1',
-      '-q:v', '2',
-      '-f', 'image2',
-      outName,
-    ]);
-
-    try {
-      const data = await ffmpeg.readFile(outName);
-      frames.push(Buffer.from(data as Uint8Array));
-      await ffmpeg.deleteFile(outName);
-    } catch {
-      // Frame extraction at this timestamp failed, skip
-    }
-  }
-
-  await ffmpeg.deleteFile(inputName);
-
-  return { duration, frames };
 }

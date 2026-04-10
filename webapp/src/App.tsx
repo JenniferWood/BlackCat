@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route, Outlet } from 'react-router-dom';
+import { DataCacheProvider } from './contexts/DataCache';
 import { TabBar } from './components/TabBar';
 import HomePage from './pages/HomePage';
 import UploadPage from './pages/UploadPage';
@@ -19,7 +20,8 @@ function TabBarLayout() {
 export default function App() {
   return (
     <BrowserRouter>
-      <Routes>
+      <DataCacheProvider>
+        <Routes>
         <Route element={<TabBarLayout />}>
           <Route path="/" element={<HomePage />} />
           <Route path="/gallery" element={<GalleryPage />} />
@@ -29,6 +31,7 @@ export default function App() {
         <Route path="/detail/:id" element={<DetailPage />} />
         <Route path="/result" element={<ResultPage />} />
       </Routes>
+      </DataCacheProvider>
     </BrowserRouter>
   );
 }

@@ -14,6 +14,7 @@ export interface MediaItem {
   blobUrl: string;
   thumbnailUrl: string;
   originalFileName?: string;      // 上传时的原始文件名
+  fileHash?: string;              // MD5 hash for deduplication
   type: 'photo' | 'video';
   uploadedAt: string;           // ISO date
 
@@ -71,6 +72,7 @@ export interface UploadResponse {
   mediaId: string;
   blobUrl: string;
   thumbnailUrl: string;
+  duplicate?: boolean;
 }
 
 export interface AnalyzeResponse {
