@@ -1,1 +1,7 @@
-{ "usingComponents": {}, "navigationBarTitleText": "创作" }
+{
+  "usingComponents": {},
+  "navigationBarTitleText": "创作",
+  "navigationBarBackgroundColor": "#1a1a2e",
+  "navigationBarTextStyle": "white",
+  "backgroundColor": "#0f0f1a"
+}

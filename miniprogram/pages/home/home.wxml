@@ -1,4 +1,107 @@
-<view class="container">
-  <text class="title">皮蛋助手</text>
-  <text class="subtitle">首页 · 推荐与近期上传</text>
+<view class="page">
+  <!-- Header -->
+  <view class="header">
+    <view class="header-row">
+      <text class="header-icon">🐾</text>
+      <text class="header-title">皮蛋助手</text>
+    </view>
+    <text class="header-subtitle">小红书内容管理</text>
+  </view>
+
+  <!-- Loading -->
+  <view class="loading-wrap" wx:if="{{loading}}">
+    <view class="loading-spinner"></view>
+    <text class="loading-text">加载中...</text>
+  </view>
+
+  <!-- Error -->
+  <view class="error-wrap" wx:elif="{{loadError}}">
+    <text class="error-text">加载失败，下拉刷新重试</text>
+  </view>
+
+  <block wx:else>
+    <!-- Recommendations Section -->
+    <view class="section" wx:if="{{recommendations.length > 0}}">
+      <view class="section-header">
+        <text class="section-title">今日推荐</text>
+        <text class="section-badge">{{recommendations.length}}</text>
+      </view>
+      <scroll-view class="rec-scroll" scroll-x="true" enhanced="true" show-scrollbar="false">
+        <view class="rec-list">
+          <view
+            class="rec-card"
+            wx:for="{{recommendations}}"
+            wx:key="id"
+            data-rec="{{item}}"
+            bind:tap="tapRecommendation"
+          >
+            <view class="rec-card-inner">
+              <text class="rec-title">{{item.suggestedTitle}}</text>
+              <text class="rec-reason">{{item.reason}}</text>
+              <view class="rec-footer">
+                <text class="rec-style" wx:if="{{item.suggestedStyle}}">{{item.suggestedStyle}}</text>
+                <view class="rec-btn">
+                  <text class="rec-btn-text">去创作</text>
+                </view>
+              </view>
+            </view>
+          </view>
+        </view>
+      </scroll-view>
+    </view>
+
+    <!-- Empty recommendations -->
+    <view class="section" wx:if="{{recommendations.length === 0 && !loading}}">
+      <view class="section-header">
+        <text class="section-title">今日推荐</text>
+      </view>
+      <view class="empty-hint">
+        <text class="empty-text">上传素材后，AI 将为你生成推荐</text>
+      </view>
+    </view>
+
+    <!-- Recent Uploads Section -->
+    <view class="section">
+      <view class="section-header">
+        <text class="section-title">最近上传</text>
+        <text class="section-count" wx:if="{{recentUploads.length > 0}}">{{recentUploads.length}} 张</text>
+      </view>
+
+      <view class="media-grid" wx:if="{{recentUploads.length > 0}}">
+        <view
+          class="media-item"
+          wx:for="{{recentUploads}}"
+          wx:key="id"
+          data-id="{{item.id}}"
+          bind:tap="tapMedia"
+        >
+          <image
+            class="media-thumb"
+            src="{{item.thumbnailUrl}}"
+            mode="aspectFill"
+            lazy-load="true"
+          />
+          <view class="media-overlay" wx:if="{{item.analysis}}">
+            <text class="media-score">{{item.analysis.publishScore}}</text>
+          </view>
+          <view class="media-fav" wx:if="{{item.isFavorite}}">
+            <text class="media-fav-icon">★</text>
+          </view>
+          <text class="media-time">{{item.uploadedAt}}</text>
+        </view>
+      </view>
+
+      <view class="empty-hint" wx:else>
+        <text class="empty-text">还没有上传过素材</text>
+        <view class="empty-action" bind:tap="tapUpload">
+          <text class="empty-action-text">去上传</text>
+        </view>
+      </view>
+    </view>
+  </block>
+
+  <!-- Floating upload button -->
+  <view class="fab" bind:tap="tapUpload">
+    <text class="fab-icon">+</text>
+  </view>
 </view>

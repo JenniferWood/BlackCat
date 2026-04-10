@@ -26,6 +26,7 @@ Thumbs.db
 # Miniprogram
 miniprogram/miniprogram_npm/
 miniprogram/node_modules/
+miniprogram/project.private.config.json
 
 # Logs
 *.log

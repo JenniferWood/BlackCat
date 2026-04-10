@@ -1,4 +1,4 @@
-const BASE_URL = ''; // 开发时留空，部署后填 Azure Functions URL
+const BASE_URL = 'http://localhost:7071'; // 开发时连本地后端，部署后改为 Azure Functions URL
 
 interface RequestOptions {
   url: string;

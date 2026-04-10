@@ -1,1 +1,5 @@
-{ "usingComponents": {}, "navigationBarTitleText": "批量上传" }
+{
+  "usingComponents": {},
+  "navigationBarTitleText": "上传素材",
+  "enablePullDownRefresh": false
+}

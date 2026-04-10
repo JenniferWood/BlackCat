@@ -1,4 +1,59 @@
-<view class="container">
-  <text class="title">文案结果</text>
-  <text class="subtitle">查看并复制生成的文案</text>
+<view class="container" wx:if="{{loaded}}">
+
+  <!-- Title Section -->
+  <view class="section">
+    <view class="section-header">
+      <text class="section-label">标题</text>
+      <view class="copy-btn" bindtap="copyTitle">
+        <text class="copy-btn-text">复制标题</text>
+      </view>
+    </view>
+    <view class="title-card">
+      <text class="title-text">{{title}}</text>
+    </view>
+  </view>
+
+  <!-- Content Section -->
+  <view class="section">
+    <view class="section-header">
+      <text class="section-label">正文</text>
+      <view class="copy-btn" bindtap="copyContent">
+        <text class="copy-btn-text">复制正文</text>
+      </view>
+    </view>
+    <view class="content-card">
+      <text class="content-text" selectable="{{true}}">{{content}}</text>
+    </view>
+  </view>
+
+  <!-- Tags Section -->
+  <view class="section" wx:if="{{tags.length > 0}}">
+    <view class="section-header">
+      <text class="section-label">标签</text>
+      <view class="copy-btn" bindtap="copyTags">
+        <text class="copy-btn-text">复制标签</text>
+      </view>
+    </view>
+    <view class="tags-wrap">
+      <view class="tag-pill" wx:for="{{tags}}" wx:key="*this">
+        <text class="tag-text">{{item}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- Bottom Actions -->
+  <view class="actions">
+    <button class="action-btn primary" bindtap="copyAll">复制全部</button>
+    <view class="action-row">
+      <button class="action-btn secondary" bindtap="regenerate">重新生成</button>
+      <button class="action-btn secondary" bindtap="goHome">返回首页</button>
+    </view>
+  </view>
+
+</view>
+
+<!-- Loading state before data arrives -->
+<view class="container loading-container" wx:if="{{!loaded}}">
+  <view class="loading-spinner"></view>
+  <text class="loading-hint">加载中...</text>
 </view>

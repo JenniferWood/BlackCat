@@ -1,4 +1,4 @@
-import { BlobServiceClient, ContainerClient } from '@azure/storage-blob';
+import { BlobServiceClient, ContainerClient, generateBlobSASQueryParameters, BlobSASPermissions, StorageSharedKeyCredential, SASProtocol } from '@azure/storage-blob';
 
 let containerClient: ContainerClient | null = null;
 let thumbnailContainerClient: ContainerClient | null = null;
@@ -27,10 +27,10 @@ export function getThumbnailContainer(): ContainerClient {
 // 初始化 Blob 容器（首次部署时调用一次）
 export async function initBlobContainers(): Promise<void> {
   const mediaContainer = getMediaContainer();
-  await mediaContainer.createIfNotExists({ access: 'blob' });
+  await mediaContainer.createIfNotExists();
 
   const thumbContainer = getThumbnailContainer();
-  await thumbContainer.createIfNotExists({ access: 'blob' });
+  await thumbContainer.createIfNotExists();
 }
 
 export async function uploadBlob(
@@ -49,4 +49,24 @@ export async function uploadBlob(
 export async function deleteBlob(containerClient: ContainerClient, blobName: string): Promise<void> {
   const blockBlobClient = containerClient.getBlockBlobClient(blobName);
   await blockBlobClient.deleteIfExists();
+}
+
+export function getBlobSasUrl(containerClient: ContainerClient, blobName: string, expiresInMinutes = 60): string {
+  const connStr = process.env.BLOB_CONNECTION_STRING!;
+  const accountName = connStr.match(/AccountName=([^;]+)/)?.[1]!;
+  const accountKey = connStr.match(/AccountKey=([^;]+)/)?.[1]!;
+  const credential = new StorageSharedKeyCredential(accountName, accountKey);
+
+  const expiresOn = new Date();
+  expiresOn.setMinutes(expiresOn.getMinutes() + expiresInMinutes);
+
+  const sas = generateBlobSASQueryParameters({
+    containerName: containerClient.containerName,
+    blobName,
+    permissions: BlobSASPermissions.parse('r'),
+    expiresOn,
+    protocol: SASProtocol.Https,
+  }, credential).toString();
+
+  return `${containerClient.getBlockBlobClient(blobName).url}?${sas}`;
 }

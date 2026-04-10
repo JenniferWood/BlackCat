@@ -1,4 +1,95 @@
-<view class="container">
-  <text class="title">批量上传</text>
-  <text class="subtitle">选择并上传多张素材</text>
+<view class="page">
+  <!-- Choose media button -->
+  <view class="choose-section" wx:if="{{!isUploading && !allDone}}">
+    <view class="choose-btn" bind:tap="chooseMedia">
+      <text class="choose-icon">📷</text>
+      <text class="choose-text">选择素材</text>
+      <text class="choose-hint">支持从相册或相机选取，最多 9 张</text>
+    </view>
+  </view>
+
+  <!-- Preview grid -->
+  <view class="preview-section" wx:if="{{selectedFiles.length > 0 && !isUploading && !allDone}}">
+    <view class="section-header">
+      <text class="section-title">已选择 ({{selectedFiles.length}}/9)</text>
+    </view>
+    <view class="preview-grid">
+      <view class="preview-item" wx:for="{{selectedFiles}}" wx:key="tempFilePath">
+        <image class="preview-img" src="{{item.tempFilePath}}" mode="aspectFill" />
+        <view class="preview-delete" data-index="{{index}}" bind:tap="removeFile">
+          <text class="preview-delete-icon">×</text>
+        </view>
+      </view>
+      <!-- Add more button -->
+      <view class="preview-add" bind:tap="chooseMedia" wx:if="{{selectedFiles.length < 9}}">
+        <text class="preview-add-icon">+</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- Upload button -->
+  <view class="upload-section" wx:if="{{selectedFiles.length > 0 && !isUploading && !allDone}}">
+    <view class="upload-btn" bind:tap="startUpload">
+      <text class="upload-btn-text">上传 ({{selectedFiles.length}}张)</text>
+    </view>
+  </view>
+
+  <!-- Upload progress -->
+  <view class="status-section" wx:if="{{isUploading || allDone}}">
+    <view class="status-header">
+      <text class="status-title" wx:if="{{isUploading}}">上传中 ({{completedCount}}/{{totalCount}})</text>
+      <text class="status-title" wx:elif="{{allDone}}">上传完成</text>
+    </view>
+
+    <view class="status-list">
+      <view class="status-item" wx:for="{{uploadStatuses}}" wx:key="fileName">
+        <!-- Progress bar -->
+        <view class="status-row">
+          <view class="status-indicator">
+            <!-- Waiting -->
+            <view class="status-dot dot-waiting" wx:if="{{item.state === 'waiting'}}"></view>
+            <!-- Uploading spinner -->
+            <view class="status-spinner" wx:elif="{{item.state === 'uploading' || item.state === 'analyzing'}}"></view>
+            <!-- Done checkmark -->
+            <text class="status-check" wx:elif="{{item.state === 'done'}}">✓</text>
+            <!-- Error -->
+            <text class="status-error-icon" wx:elif="{{item.state === 'error'}}">!</text>
+          </view>
+
+          <view class="status-info">
+            <text class="status-name">{{item.fileName}}</text>
+            <text class="status-label status-label-uploading" wx:if="{{item.state === 'uploading'}}">上传中...</text>
+            <text class="status-label status-label-analyzing" wx:elif="{{item.state === 'analyzing'}}">AI 分析中...</text>
+            <text class="status-label status-label-done" wx:elif="{{item.state === 'done'}}">完成</text>
+            <text class="status-label status-label-error" wx:elif="{{item.state === 'error'}}">{{item.error}}</text>
+            <text class="status-label status-label-waiting" wx:elif="{{item.state === 'waiting'}}">等待中</text>
+          </view>
+        </view>
+
+        <!-- Progress bar track -->
+        <view class="progress-track" wx:if="{{item.state !== 'waiting'}}">
+          <view
+            class="progress-fill {{item.state === 'done' ? 'progress-done' : ''}} {{item.state === 'error' ? 'progress-error' : ''}}"
+            style="width: {{item.progress}}%"
+          ></view>
+        </view>
+      </view>
+    </view>
+
+    <!-- Success actions -->
+    <view class="done-section" wx:if="{{allDone}}">
+      <view class="done-message">
+        <text class="done-emoji">🎉</text>
+        <text class="done-text">{{completedCount}} 张素材上传并分析完成</text>
+      </view>
+      <view class="done-actions">
+        <view class="done-btn done-btn-primary" bind:tap="goToGallery">
+          <text class="done-btn-text">查看素材库</text>
+        </view>
+        <view class="done-btn done-btn-secondary" bind:tap="resetPage">
+          <text class="done-btn-text-secondary">继续上传</text>
+        </view>
+      </view>
+    </view>
+  </view>
 </view>

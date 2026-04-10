@@ -1,4 +1,130 @@
-<view class="container">
-  <text class="title">素材详情</text>
-  <text class="subtitle">查看素材信息与标签</text>
+<view class="page">
+  <!-- Loading -->
+  <view class="loading-wrap" wx:if="{{loading}}">
+    <view class="loading-spinner"></view>
+    <text class="loading-text">加载中...</text>
+  </view>
+
+  <!-- Error -->
+  <view class="error-wrap" wx:elif="{{loadError}}">
+    <text class="error-text">加载失败</text>
+  </view>
+
+  <block wx:elif="{{item}}">
+    <!-- Hero image -->
+    <view class="hero" bind:tap="previewImage">
+      <image
+        class="hero-image"
+        src="{{item.blobUrl}}"
+        mode="widthFix"
+      />
+      <view class="hero-hint">
+        <text class="hero-hint-text">点击查看大图</text>
+      </view>
+    </view>
+
+    <!-- Action bar -->
+    <view class="action-bar">
+      <view class="action-btn action-btn--fav" bind:tap="toggleFavorite">
+        <text class="action-icon">{{item.isFavorite ? '★' : '☆'}}</text>
+        <text class="action-label">{{item.isFavorite ? '已收藏' : '收藏'}}</text>
+      </view>
+      <view class="action-btn action-btn--compose" bind:tap="goCompose">
+        <text class="action-icon">✎</text>
+        <text class="action-label">去创作</text>
+      </view>
+      <view class="action-btn action-btn--delete" bind:tap="deleteMedia">
+        <text class="action-icon">🗑</text>
+        <text class="action-label">删除</text>
+      </view>
+    </view>
+
+    <!-- Analysis section -->
+    <view class="section" wx:if="{{item.analysis}}">
+      <view class="section-header">
+        <text class="section-title">AI 分析</text>
+      </view>
+
+      <!-- Description -->
+      <view class="analysis-block">
+        <text class="analysis-label">描述</text>
+        <text class="analysis-desc">{{item.analysis.description}}</text>
+      </view>
+
+      <!-- Tags -->
+      <view class="analysis-block" wx:if="{{item.analysis.tags && item.analysis.tags.length > 0}}">
+        <text class="analysis-label">标签</text>
+        <view class="tag-list">
+          <view class="tag-pill" wx:for="{{item.analysis.tags}}" wx:key="*this">
+            <text class="tag-text">{{item}}</text>
+          </view>
+        </view>
+      </view>
+
+      <!-- Mood -->
+      <view class="analysis-block" wx:if="{{item.analysis.mood}}">
+        <text class="analysis-label">氛围</text>
+        <text class="analysis-mood">{{item.analysis.mood}}</text>
+      </view>
+
+      <!-- Quality score -->
+      <view class="analysis-block">
+        <text class="analysis-label">质量评分</text>
+        <view class="score-row">
+          <view class="score-bar-bg">
+            <view class="score-bar-fill score-bar-fill--quality" style="width: {{item.analysis.quality * 10}}%"></view>
+          </view>
+          <text class="score-value">{{item.analysis.quality}}/10</text>
+        </view>
+      </view>
+
+      <!-- Publish score -->
+      <view class="analysis-block">
+        <text class="analysis-label">发布评分</text>
+        <view class="score-row">
+          <view class="score-bar-bg">
+            <view class="score-bar-fill score-bar-fill--publish" style="width: {{item.analysis.publishScore * 10}}%"></view>
+          </view>
+          <text class="score-value">{{item.analysis.publishScore}}/10</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- No analysis state -->
+    <view class="section" wx:if="{{!item.analysis}}">
+      <view class="section-header">
+        <text class="section-title">AI 分析</text>
+      </view>
+      <view class="no-analysis">
+        <text class="no-analysis-text" wx:if="{{item.status === 'uploaded'}}">尚未分析</text>
+        <text class="no-analysis-text" wx:else>AI 分析中...</text>
+        <view class="analyze-btn" bind:tap="triggerAnalysis" wx:if="{{item.status === 'uploaded'}}">
+          <text class="analyze-btn-text">开始分析</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- Info section -->
+    <view class="section">
+      <view class="section-header">
+        <text class="section-title">素材信息</text>
+      </view>
+      <view class="info-list">
+        <view class="info-row">
+          <text class="info-label">上传时间</text>
+          <text class="info-value">{{item.uploadedAt}}</text>
+        </view>
+        <view class="info-row">
+          <text class="info-label">状态</text>
+          <view class="status-badge status-{{item.status}}">
+            <text class="status-badge-text">{{statusLabels[item.status] || item.status}}</text>
+          </view>
+        </view>
+        <view class="info-row">
+          <text class="info-label">类型</text>
+          <text class="info-value">{{typeLabels[item.type] || item.type}}</text>
+        </view>
+      </view>
+    </view>
+  </block>
 </view>

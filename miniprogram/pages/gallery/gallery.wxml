@@ -1,4 +1,120 @@
-<view class="container">
-  <text class="title">素材库</text>
-  <text class="subtitle">浏览全部素材</text>
+<view class="page">
+  <!-- Status filter bar -->
+  <scroll-view class="filter-bar" scroll-x="true" enhanced="true" show-scrollbar="false">
+    <view class="filter-list">
+      <view
+        class="filter-chip {{activeStatus === item.key ? 'filter-chip--active' : ''}}"
+        wx:for="{{statusFilters}}"
+        wx:key="key"
+        data-status="{{item.key}}"
+        bind:tap="filterByStatus"
+      >
+        <text class="filter-chip-text">{{item.label}}</text>
+      </view>
+
+      <!-- Favorite toggle -->
+      <view
+        class="filter-chip filter-chip--fav {{favoriteOnly ? 'filter-chip--active' : ''}}"
+        bind:tap="toggleFavoriteFilter"
+      >
+        <text class="filter-chip-text">{{favoriteOnly ? '★' : '☆'}} 收藏</text>
+      </view>
+    </view>
+  </scroll-view>
+
+  <!-- Search bar -->
+  <view class="search-bar">
+    <view class="search-input-wrap">
+      <text class="search-icon">🔍</text>
+      <input
+        class="search-input"
+        placeholder="搜索素材..."
+        placeholder-style="color: #555;"
+        value="{{searchText}}"
+        bindinput="onSearchInput"
+        confirm-type="search"
+      />
+      <view
+        class="search-clear"
+        wx:if="{{searchText}}"
+        bind:tap="clearSearch"
+      >
+        <text class="search-clear-icon">✕</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- Loading state -->
+  <view class="loading-wrap" wx:if="{{loading}}">
+    <view class="loading-spinner"></view>
+    <text class="loading-text">加载中...</text>
+  </view>
+
+  <!-- Error state -->
+  <view class="error-wrap" wx:elif="{{loadError}}">
+    <text class="error-text">加载失败，下拉刷新重试</text>
+  </view>
+
+  <!-- Empty state -->
+  <view class="empty-wrap" wx:elif="{{!loading && mediaList.length === 0}}">
+    <text class="empty-emoji">🐾</text>
+    <text class="empty-text">还没有素材，去上传吧</text>
+    <view class="empty-btn" bind:tap="goUpload">
+      <text class="empty-btn-text">去上传</text>
+    </view>
+  </view>
+
+  <!-- Media grid -->
+  <block wx:else>
+    <view class="grid-info">
+      <text class="grid-count">共 {{total}} 个素材</text>
+    </view>
+
+    <view class="media-grid">
+      <view
+        class="media-card"
+        wx:for="{{mediaList}}"
+        wx:key="id"
+        data-id="{{item.id}}"
+        bind:tap="tapMedia"
+      >
+        <!-- Thumbnail -->
+        <image
+          class="media-thumb"
+          src="{{item.thumbnailUrl}}"
+          mode="aspectFill"
+          lazy-load="true"
+        />
+
+        <!-- Favorite heart overlay -->
+        <view class="media-fav" wx:if="{{item.isFavorite}}">
+          <text class="media-fav-icon">★</text>
+        </view>
+
+        <!-- Status dot -->
+        <view class="media-status-dot status-{{item.status}}"></view>
+
+        <!-- Bottom overlay with mood -->
+        <view class="media-bottom" wx:if="{{item.analysis && item.analysis.mood}}">
+          <text class="media-mood">{{item.analysis.mood}}</text>
+        </view>
+
+        <!-- Publish score badge -->
+        <view class="media-score-badge" wx:if="{{item.analysis}}">
+          <text class="media-score-text">{{item.analysis.publishScore}}</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- Loading more indicator -->
+    <view class="load-more" wx:if="{{loadingMore}}">
+      <view class="loading-spinner loading-spinner--small"></view>
+      <text class="load-more-text">加载更多...</text>
+    </view>
+
+    <!-- No more data -->
+    <view class="no-more" wx:if="{{!hasMore && mediaList.length > 0}}">
+      <text class="no-more-text">— 没有更多了 —</text>
+    </view>
+  </block>
 </view>
